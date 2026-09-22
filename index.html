@@ -215,6 +215,35 @@
     font-family:inherit;
   }
   .primary-btn:hover{background:var(--primary-dark);}
+  .secondary-btn{
+    background:#fff;
+    color:var(--primary);
+    border:1.5px solid var(--primary);
+    border-radius:999px;
+    padding:12px 30px;
+    font-size:0.92rem;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+    font-family:inherit;
+  }
+  .secondary-btn:hover{background:#f0faf8;}
+  .result-btn-row{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+  }
+  .mode-tag{
+    display:inline-block;
+    font-size:0.72rem;
+    font-weight:700;
+    color:var(--primary);
+    background:#e6f6f4;
+    border-radius:999px;
+    padding:3px 10px;
+    margin-bottom:8px;
+  }
   .score-big{
     font-size:2.6rem;
     font-weight:800;
@@ -270,6 +299,7 @@
 
   <!-- QUIZ SCREEN -->
   <div id="quiz-screen" class="hidden">
+    <span class="mode-tag hidden" id="mode-tag">復習モード（まちがえた問題）</span>
     <div class="progress-outer"><div class="progress-inner" id="progress-bar"></div></div>
     <div class="meta-row">
       <span id="section-badge" class="section-badge">セクション</span>
@@ -298,11 +328,14 @@
 
   <!-- RESULT SCREEN -->
   <div id="result-screen" class="center-card hidden">
-    <h2>クイズ終了！</h2>
+    <h2 id="result-title">クイズ終了！</h2>
     <div class="score-big" id="score-big">0 / 36</div>
     <div class="score-sub" id="score-pct">正答率 0%</div>
     <div class="rank-msg" id="rank-msg"></div>
-    <button class="primary-btn" id="retry-btn">もう一度挑戦する</button>
+    <div class="result-btn-row">
+      <button class="primary-btn hidden" id="retry-wrong-btn">まちがえた問題だけ再挑戦する</button>
+      <button class="secondary-btn" id="retry-btn">もう一度全問に挑戦する</button>
+    </div>
   </div>
 
   <footer>第4回 ヒトと動物の消化・吸収　学習用クイズ</footer>
@@ -493,6 +526,8 @@
   let current = 0;
   let score = 0;
   let answered = false;
+  let wrongIndices = [];       // original question indices missed in the run just finished
+  let isReviewMode = false;    // true while running a "wrong questions only" round
 
   // ---------- elements ----------
   const startScreen = document.getElementById('start-screen');
@@ -500,6 +535,9 @@
   const resultScreen = document.getElementById('result-screen');
   const startBtn = document.getElementById('start-btn');
   const retryBtn = document.getElementById('retry-btn');
+  const retryWrongBtn = document.getElementById('retry-wrong-btn');
+  const modeTag = document.getElementById('mode-tag');
+  const resultTitle = document.getElementById('result-title');
 
   const progressBar = document.getElementById('progress-bar');
   const sectionBadge = document.getElementById('section-badge');
@@ -615,6 +653,7 @@
     } else {
       btnEl.classList.add("incorrect");
       buttons[q.correct].classList.add("correct");
+      wrongIndices.push(qi);
     }
     showFeedback(isCorrect, q.options[q.correct], q.explain);
   }
@@ -636,6 +675,7 @@
       isCorrect = checkTextAnswer(q, raw);
     }
     if(isCorrect) score++;
+    else wrongIndices.push(qi);
 
     const correctDisplay = q.answers[0];
     showFeedback(isCorrect, correctDisplay, q.explain);
@@ -669,6 +709,7 @@
   function showResult(){
     quizScreen.classList.add("hidden");
     resultScreen.classList.remove("hidden");
+    resultTitle.textContent = isReviewMode ? "復習クイズ終了！" : "クイズ終了！";
     scoreBig.textContent = score + " / " + order.length;
     const pct = Math.round(score/order.length*100);
     scorePct.textContent = "正答率 " + pct + "%";
@@ -678,20 +719,38 @@
     else if(pct >= 50) msg = "まずまずです。まちがえた部分をもう一度確認しよう。";
     else msg = "もう一度「まとめてみよう」を読み直して復習しよう。";
     rankMsg.textContent = msg;
+
+    if(wrongIndices.length > 0){
+      retryWrongBtn.textContent = "まちがえた問題だけ再挑戦する（" + wrongIndices.length + "問）";
+      retryWrongBtn.classList.remove("hidden");
+    } else {
+      retryWrongBtn.classList.add("hidden");
+    }
+    retryBtn.textContent = isReviewMode ? "もう一度全問（36問）に挑戦する" : "もう一度全問に挑戦する";
   }
 
-  function startQuiz(){
-    order = shuffle(questions.map((_,i)=>i));
+  function startQuiz(questionIndices, reviewMode){
+    isReviewMode = !!reviewMode;
+    order = shuffle(questionIndices);
     current = 0;
     score = 0;
+    wrongIndices = [];
+    modeTag.classList.toggle("hidden", !isReviewMode);
     startScreen.classList.add("hidden");
     resultScreen.classList.add("hidden");
     quizScreen.classList.remove("hidden");
     renderQuestion();
   }
 
-  startBtn.addEventListener("click", startQuiz);
-  retryBtn.addEventListener("click", startQuiz);
+  startBtn.addEventListener("click", ()=>{
+    startQuiz(questions.map((_,i)=>i), false);
+  });
+  retryBtn.addEventListener("click", ()=>{
+    startQuiz(questions.map((_,i)=>i), false);
+  });
+  retryWrongBtn.addEventListener("click", ()=>{
+    startQuiz(wrongIndices.slice(), true);
+  });
   nextBtn.addEventListener("click", goNext);
   submitTextBtn.addEventListener("click", handleTextSubmit);
   textAnswer.addEventListener("keydown", (e)=>{
