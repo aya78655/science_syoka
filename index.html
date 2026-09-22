@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第4回 ヒトと動物の消化・吸収 一問一答クイズ</title>
+<style>
+  :root{
+    --primary:#0f766e;
+    --primary-dark:#0b5c56;
+    --primary-light:#14b8a6;
+    --bg:#f3f7f6;
+    --card:#ffffff;
+    --border:#dbe6e4;
+    --text:#1f2937;
+    --text-soft:#5b6b6a;
+    --correct:#15803d;
+    --correct-bg:#ecfdf3;
+    --incorrect:#b91c1c;
+    --incorrect-bg:#fef2f2;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.7;
+    min-height:100vh;
+    padding:24px 16px 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto;}
+  header.app-header{
+    text-align:center;
+    margin-bottom:24px;
+  }
+  header.app-header h1{
+    font-size:1.3rem;
+    margin:0 0 4px;
+    color:var(--primary-dark);
+  }
+  header.app-header p{
+    margin:0;
+    color:var(--text-soft);
+    font-size:0.9rem;
+  }
+
+  /* progress bar */
+  .progress-outer{
+    background:#e2eeec;
+    border-radius:999px;
+    height:8px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .progress-inner{
+    background:linear-gradient(90deg,var(--primary-light),var(--primary));
+    height:100%;
+    width:0%;
+    transition:width .35s ease;
+  }
+  .meta-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:0.8rem;
+    color:var(--text-soft);
+    margin-bottom:20px;
+  }
+  .section-badge{
+    display:inline-block;
+    background:var(--primary);
+    color:#fff;
+    font-size:0.72rem;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:999px;
+    letter-spacing:.02em;
+  }
+
+  /* card */
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px 22px;
+    box-shadow:0 1px 3px rgba(15,42,38,0.06), 0 8px 24px rgba(15,42,38,0.04);
+  }
+  .q-number{
+    font-size:0.78rem;
+    color:var(--text-soft);
+    margin-bottom:6px;
+    font-weight:600;
+  }
+  .q-text{
+    font-size:1.08rem;
+    font-weight:600;
+    margin:0 0 18px;
+    color:var(--text);
+  }
+
+  /* mc options */
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .option-btn{
+    text-align:left;
+    background:#fbfefd;
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    padding:13px 16px;
+    font-size:0.97rem;
+    color:var(--text);
+    cursor:pointer;
+    transition:border-color .15s, background .15s, transform .1s;
+    font-family:inherit;
+  }
+  .option-btn:hover:not(:disabled){
+    border-color:var(--primary-light);
+    background:#f0faf8;
+  }
+  .option-btn:active:not(:disabled){transform:scale(0.99);}
+  .option-btn:disabled{cursor:default;}
+  .option-btn.correct{
+    border-color:var(--correct);
+    background:var(--correct-bg);
+    color:var(--correct);
+    font-weight:600;
+  }
+  .option-btn.incorrect{
+    border-color:var(--incorrect);
+    background:var(--incorrect-bg);
+    color:var(--incorrect);
+    font-weight:600;
+  }
+
+  /* text input */
+  .text-input-row{display:flex;gap:8px;}
+  .text-input-row input{
+    flex:1;
+    padding:13px 14px;
+    font-size:1rem;
+    border:1.5px solid var(--border);
+    border-radius:12px;
+    font-family:inherit;
+    color:var(--text);
+  }
+  .text-input-row input:focus{outline:none;border-color:var(--primary-light);}
+  .text-input-row button{
+    background:var(--primary);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:0 20px;
+    font-size:0.95rem;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .text-input-row button:hover{background:var(--primary-dark);}
+  .text-input-row button:disabled{background:#a9bdb9;cursor:default;}
+
+  /* feedback */
+  .feedback{
+    margin-top:16px;
+    padding:14px 16px;
+    border-radius:12px;
+    font-size:0.93rem;
+    display:none;
+  }
+  .feedback.show{display:block;}
+  .feedback.correct{background:var(--correct-bg);color:var(--correct);}
+  .feedback.incorrect{background:var(--incorrect-bg);color:var(--incorrect);}
+  .feedback .fb-title{font-weight:700;margin-bottom:4px;}
+  .feedback .fb-answer{color:var(--text);font-weight:600;}
+  .feedback .fb-explain{color:var(--text-soft);margin-top:6px;font-size:0.88rem;}
+
+  .next-btn{
+    margin-top:18px;
+    width:100%;
+    background:var(--primary);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:13px;
+    font-size:0.98rem;
+    font-weight:700;
+    cursor:pointer;
+    display:none;
+    font-family:inherit;
+  }
+  .next-btn.show{display:block;}
+  .next-btn:hover{background:var(--primary-dark);}
+
+  /* start / result screens */
+  .center-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:36px 26px;
+    text-align:center;
+    box-shadow:0 1px 3px rgba(15,42,38,0.06), 0 8px 24px rgba(15,42,38,0.04);
+  }
+  .center-card h2{margin-top:0;color:var(--primary-dark);font-size:1.2rem;}
+  .center-card p{color:var(--text-soft);font-size:0.93rem;}
+  .primary-btn{
+    background:var(--primary);
+    color:#fff;
+    border:none;
+    border-radius:999px;
+    padding:14px 34px;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:12px;
+    font-family:inherit;
+  }
+  .primary-btn:hover{background:var(--primary-dark);}
+  .score-big{
+    font-size:2.6rem;
+    font-weight:800;
+    color:var(--primary);
+    margin:14px 0 4px;
+  }
+  .score-sub{color:var(--text-soft);font-size:0.9rem;margin-bottom:4px;}
+  .rank-msg{
+    font-weight:700;
+    font-size:1.05rem;
+    margin:14px 0 4px;
+    color:var(--text);
+  }
+  .outline-list{
+    text-align:left;
+    font-size:0.82rem;
+    color:var(--text-soft);
+    margin:20px 0 0;
+    padding:14px 16px;
+    background:#f6faf9;
+    border-radius:10px;
+    border:1px solid var(--border);
+  }
+  .outline-list strong{color:var(--text);}
+
+  .hidden{display:none;}
+
+  footer{
+    text-align:center;
+    font-size:0.75rem;
+    color:#94a3a0;
+    margin-top:28px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="app-header">
+    <h1>第4回　ヒトと動物の消化・吸収</h1>
+    <p>一問一答クイズ（まとめてみよう + 要点チェック）</p>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="start-screen" class="center-card">
+    <h2>クイズをはじめよう</h2>
+    <p>栄養素・消化液・消化酵素・柔毛のはたらき・動物の消化器官まで、全36問。<br>4択問題と記述問題があります。</p>
+    <div class="outline-list">
+      <strong>出題範囲</strong><br>
+      ① 食物と栄養素　② 消化のしくみ　③ 養分の吸収　④ 動物の消化器官
+    </div>
+    <button class="primary-btn" id="start-btn">スタート</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz-screen" class="hidden">
+    <div class="progress-outer"><div class="progress-inner" id="progress-bar"></div></div>
+    <div class="meta-row">
+      <span id="section-badge" class="section-badge">セクション</span>
+      <span id="q-position">問 1 / 36</span>
+    </div>
+    <div class="card">
+      <div class="q-number" id="q-number">問1</div>
+      <p class="q-text" id="q-text"></p>
+
+      <div class="options" id="options-container"></div>
+
+      <div class="text-input-row hidden" id="text-input-container">
+        <input type="text" id="text-answer" placeholder="答えを入力してね" autocomplete="off">
+        <button id="submit-text-btn">回答する</button>
+      </div>
+
+      <div class="feedback" id="feedback">
+        <div class="fb-title" id="fb-title"></div>
+        <div class="fb-answer" id="fb-answer"></div>
+        <div class="fb-explain" id="fb-explain"></div>
+      </div>
+
+      <button class="next-btn" id="next-btn">次の問題へ</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen" class="center-card hidden">
+    <h2>クイズ終了！</h2>
+    <div class="score-big" id="score-big">0 / 36</div>
+    <div class="score-sub" id="score-pct">正答率 0%</div>
+    <div class="rank-msg" id="rank-msg"></div>
+    <button class="primary-btn" id="retry-btn">もう一度挑戦する</button>
+  </div>
+
+  <footer>第4回 ヒトと動物の消化・吸収　学習用クイズ</footer>
+</div>
+
+<script>
+(function(){
+
+  const SECTION_NAMES = {
+    A: "① 食物と栄養素",
+    B: "② 消化のしくみ",
+    C: "③ 養分の吸収",
+    D: "④ 動物の消化器官"
+  };
+
+  const questions = [
+    // ---------- A: 食物と栄養素 ----------
+    {section:"A", type:"mc",
+     q:"米やムギといった穀物などに多くふくまれ、おもに生きていくためのエネルギー源になる栄養素はどれですか。",
+     options:["炭水化物","タンパク質","しぼう","ミネラル"],
+     correct:0,
+     explain:"炭水化物はおもにデンプンや糖として穀物に多くふくまれ、エネルギー源になります。"},
+    {section:"A", type:"mc",
+     q:"次のうち、タンパク質を多くふくむ食べ物として最も適切なものはどれですか。",
+     options:["ラッカセイ","肉","ジャガイモ","バター"],
+     correct:1,
+     explain:"肉はおもに筋肉や内臓などのからだをつくる材料になるタンパク質を多くふくみます。（ジャガイモは炭水化物、バターはしぼうが主成分です）"},
+    {section:"A", type:"text",
+     q:"おもに筋肉・内臓などのからだをつくる材料になる栄養素は何ですか。",
+     answers:["タンパク質","たんぱく質"],
+     explain:"タンパク質は筋肉・内臓などからだをつくる材料になります。"},
+    {section:"A", type:"text",
+     q:"骨・歯・血液などの成分になり、からだの成長を助ける栄養素は何ですか。",
+     answers:["ミネラル"],
+     explain:"ミネラルは骨・歯・血液などの成分になり、からだの成長を助けます。"},
+    {section:"A", type:"text",
+     q:"からだの調子をととのえたり、成長を助けたりする栄養素は何ですか。",
+     answers:["ビタミン"],
+     explain:"ビタミンはからだの調子をととのえたり、成長を助けたりするはたらきがあります。"},
+
+    // ---------- B: 消化のしくみ ----------
+    {section:"B", type:"mc",
+     q:"次の消化器官を、口を先頭にして食べ物が通る順に並べたものはどれですか。",
+     options:["食道 → 胃 → 小腸 → 大腸","胃 → 食道 → 小腸 → 大腸","食道 → 胃 → 大腸 → 小腸","胃 → 小腸 → 食道 → 大腸"],
+     correct:0,
+     explain:"食べ物は口→食道→胃→小腸→大腸の順に通ります。"},
+    {section:"B", type:"mc",
+     q:"消化された養分を吸収する器官はどこですか。",
+     options:["胃","大腸","小腸","食道"],
+     correct:2,
+     explain:"小腸は消化の仕上げをし、養分の吸収を行う器官です。"},
+    {section:"B", type:"text",
+     q:"胃液にふくまれ、食物の殺菌や消化を助ける物質は何ですか。",
+     answers:["塩酸"],
+     explain:"胃液にふくまれる塩酸が食物の殺菌や消化を助けます。"},
+    {section:"B", type:"text",
+     q:"だ液にふくまれ、デンプンを麦芽糖などに変える消化酵素を何といいますか。",
+     answers:["だ液アミラーゼ","アミラーゼ","プチアリン","だえきあみらーぜ"],
+     explain:"だ液アミラーゼ（プチアリン）は、デンプンを麦芽糖などに変えます。"},
+    {section:"B", type:"text",
+     q:"胃液にふくまれ、タンパク質をペプトンに変える消化酵素は何ですか。",
+     answers:["ペプシン"],
+     explain:"胃液にふくまれるペプシンが、タンパク質をペプトンに変えます。"},
+    {section:"B", type:"mc",
+     q:"胆汁をつくる器官はどこですか。",
+     options:["肝臓","胆のう","すい臓","小腸"],
+     correct:0,
+     explain:"胆汁は肝臓でつくられ、胆のうにたくわえられます。"},
+    {section:"B", type:"text",
+     q:"肝臓でつくられた胆汁をたくわえる器官は何ですか。",
+     answers:["胆のう","たんのう"],
+     explain:"胆汁は肝臓でつくられ、胆のうにたくわえられます。"},
+    {section:"B", type:"mc",
+     q:"胆汁のはたらきとして正しいものはどれですか。",
+     options:["しぼうを細かい粒にする","デンプンを分解する消化酵素をふくむ","タンパク質を分解する消化酵素をふくむ","糖をブドウ糖に分解する"],
+     correct:0,
+     explain:"胆汁はしぼうを細かい粒にしますが、消化酵素はふくまれていません。"},
+    {section:"B", type:"text",
+     q:"すい液がつくられる器官は何ですか。",
+     answers:["すい臓","膵臓"],
+     explain:"すい臓でつくられたすい液は、十二指腸に出されます。"},
+    {section:"B", type:"text",
+     q:"すい液にふくまれる消化酵素のはたらきにより、しぼうは何という2つの物質に分解されますか。（2つ答えよう）",
+     answers:["しぼう酸とモノグリセリド","脂肪酸とモノグリセリド","しぼう酸,モノグリセリド","脂肪酸,モノグリセリド"],
+     checkTwo:["しぼう酸","脂肪酸","モノグリセリド"],
+     explain:"しぼうはすい液のはたらきによって、しぼう酸とモノグリセリドに分解されます。"},
+    {section:"B", type:"text",
+     q:"デンプンは消化されて、最終的に何という物質になりますか。",
+     answers:["ブドウ糖"],
+     explain:"デンプンは、小腸のかべから出される消化酵素などによって最終的にブドウ糖になります。"},
+    {section:"B", type:"text",
+     q:"タンパク質は消化されて、最終的に何という物質になりますか。",
+     answers:["アミノ酸"],
+     explain:"タンパク質は最終的にアミノ酸になります。"},
+    {section:"B", type:"mc",
+     q:"デンプンのり＋だ液を37℃に保ってヨウ素液を加えると、色は変化しますか。",
+     options:["変化する（反応する）","変化しない（反応しない）"],
+     correct:1,
+     explain:"だ液のはたらきでデンプンが糖に変わっているため、ヨウ素液には反応しません（×）。"},
+    {section:"B", type:"mc",
+     q:"デンプンのり＋だ液を37℃に保ってフェーリング液を加えると、反応しますか。",
+     options:["反応する","反応しない"],
+     correct:0,
+     explain:"だ液によってデンプンが糖に変わっているため、糖に反応するフェーリング液に反応します（○）。"},
+    {section:"B", type:"mc",
+     q:"デンプンのり＋だ液を5℃に保った場合、ヨウ素液の反応はどうなりますか。",
+     options:["反応する（青むらさき色になる）","反応しない"],
+     correct:0,
+     explain:"5℃のような低温ではだ液の消化酵素がよくはたらかないため、デンプンが残りヨウ素液に反応します（○）。だ液はヒトの体温くらいでよくはたらきます。"},
+    {section:"B", type:"text",
+     q:"デンプンに反応して色が変わる薬品は何ですか。",
+     answers:["ヨウ素液"],
+     explain:"ヨウ素液はデンプンに反応して青むらさき色に変化します。"},
+    {section:"B", type:"text",
+     q:"糖に反応する薬品は何ですか。",
+     answers:["フェーリング液"],
+     explain:"フェーリング液は糖に反応します。"},
+
+    // ---------- C: 養分の吸収 ----------
+    {section:"C", type:"text",
+     q:"小腸の内側のかべのひだにある、小さなとっ起を何といいますか。",
+     answers:["柔毛"],
+     explain:"小腸の内側には柔毛という小さなとっ起があります。"},
+    {section:"C", type:"mc",
+     q:"柔毛のはたらきとして正しいものはどれですか。",
+     options:["小腸の表面積を大きくし、養分を効率よく吸収する","胃酸を中和する","食べ物を歯でかみくだく","血液をつくる"],
+     correct:0,
+     explain:"柔毛は小腸の内側の表面積を大きくし、養分を効率的に吸収するのに役立っています。"},
+    {section:"C", type:"text",
+     q:"ブドウ糖やアミノ酸は、柔毛の何という管から吸収されますか。",
+     answers:["毛細血管"],
+     explain:"ブドウ糖やアミノ酸、水に溶けやすいビタミンCなどは毛細血管から門脈を通って肝臓へ運ばれます。"},
+    {section:"C", type:"text",
+     q:"しぼう酸とモノグリセリドは柔毛でふたたびしぼうになり、何という管に吸収されますか。",
+     answers:["リンパ管"],
+     explain:"しぼう酸とモノグリセリドはふたたびしぼうになり、リンパ管に吸収されて血管へ入ります。"},
+    {section:"C", type:"text",
+     q:"毛細血管から吸収された養分は、門脈を通ってどこに運ばれますか。",
+     answers:["肝臓"],
+     explain:"ブドウ糖やアミノ酸は毛細血管から門脈を通って肝臓へ運ばれます。"},
+    {section:"C", type:"mc",
+     q:"肝臓のはたらきとして誤っているものはどれですか。",
+     options:["ブドウ糖の一部をグリコーゲンに変えてたくわえる","アミノ酸の一部からタンパク質をつくる","有毒な物質を無毒にする","しぼうを消化する消化酵素をつくる"],
+     correct:3,
+     explain:"しぼうを消化する消化酵素（すい液）をつくるのはすい臓のはたらきです。肝臓はブドウ糖をグリコーゲンに変えてたくわえたり、有毒な物質を無毒にしたり、熱を発生させて体温を保つはたらきをします。"},
+    {section:"C", type:"text",
+     q:"肝臓がブドウ糖の一部を変えてたくわえる物質は何ですか。",
+     answers:["グリコーゲン"],
+     explain:"肝臓はブドウ糖の一部をグリコーゲンに変えてたくわえます。"},
+
+    // ---------- D: 動物の消化器官 ----------
+    {section:"D", type:"mc",
+     q:"フナの消化管の特徴として正しいものはどれですか。",
+     options:["1本の長い管になっている","胃がとても大きい","歯で細かくかみくだく","消化管が3本に分かれている"],
+     correct:0,
+     explain:"フナの消化管は1本の長い管になっています。"},
+    {section:"D", type:"text",
+     q:"フナの浮き沈みを調整する器官を何といいますか。",
+     answers:["うきぶくろ","浮きぶくろ","浮袋"],
+     explain:"うきぶくろは浮き沈みの調整をします。"},
+    {section:"D", type:"text",
+     q:"フナの呼吸を行う器官を何といいますか。",
+     answers:["えら","鰓"],
+     explain:"えらは呼吸を行う器官です。"},
+    {section:"D", type:"mc",
+     q:"ライオンやトラなどの肉食動物の消化管の長さはどのようになっていますか。",
+     options:["長い","短い"],
+     correct:1,
+     explain:"肉食動物の消化管は短く、するどい門歯や犬歯、ざらざらした臼歯を持っています。"},
+    {section:"D", type:"mc",
+     q:"ウシやウマなどの草食動物の消化管の長さはどのようになっていますか。",
+     options:["長い","短い"],
+     correct:0,
+     explain:"草食動物の消化管は長く、門歯や臼歯が発達しています。"},
+    {section:"D", type:"text",
+     q:"サルやヒトのように、肉も植物も食べる性質の動物を何性の動物といいますか。",
+     answers:["雑食性","雑食"],
+     explain:"サルやヒトは雑食性の動物です。"},
+    {section:"D", type:"mc",
+     q:"肉食動物と草食動物のうち、消化管が長いのはどちらですか。",
+     options:["肉食動物","草食動物"],
+     correct:1,
+     explain:"消化しにくい植物繊維を消化するため、草食動物の消化管は肉食動物より長くなっています。"}
+  ];
+
+  // ---------- state ----------
+  let order = questions.map((_,i)=>i);
+  let current = 0;
+  let score = 0;
+  let answered = false;
+
+  // ---------- elements ----------
+  const startScreen = document.getElementById('start-screen');
+  const quizScreen = document.getElementById('quiz-screen');
+  const resultScreen = document.getElementById('result-screen');
+  const startBtn = document.getElementById('start-btn');
+  const retryBtn = document.getElementById('retry-btn');
+
+  const progressBar = document.getElementById('progress-bar');
+  const sectionBadge = document.getElementById('section-badge');
+  const qPosition = document.getElementById('q-position');
+  const qNumber = document.getElementById('q-number');
+  const qText = document.getElementById('q-text');
+  const optionsContainer = document.getElementById('options-container');
+  const textInputContainer = document.getElementById('text-input-container');
+  const textAnswer = document.getElementById('text-answer');
+  const submitTextBtn = document.getElementById('submit-text-btn');
+  const feedback = document.getElementById('feedback');
+  const fbTitle = document.getElementById('fb-title');
+  const fbAnswer = document.getElementById('fb-answer');
+  const fbExplain = document.getElementById('fb-explain');
+  const nextBtn = document.getElementById('next-btn');
+
+  const scoreBig = document.getElementById('score-big');
+  const scorePct = document.getElementById('score-pct');
+  const rankMsg = document.getElementById('rank-msg');
+
+  // ---------- helpers ----------
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function normalize(s){
+    if(!s) return "";
+    return s
+      .replace(/[\s　]/g,"")
+      .replace(/[（(]/g,"(")
+      .replace(/[）)]/g,")")
+      .replace(/[、,]/g,",")
+      .replace(/[・･]/g,"")
+      .trim();
+  }
+
+  function checkTextAnswer(q, raw){
+    const input = normalize(raw);
+    if(!input) return false;
+    if(q.checkTwo){
+      // require both key terms present somewhere in the input
+      return q.checkTwo.every ? false : false; // placeholder, overwritten below
+    }
+    return q.answers.some(a=>{
+      const na = normalize(a);
+      return input === na || (input.length>=2 && (na.includes(input) || input.includes(na)));
+    });
+  }
+
+  function checkTwoPartAnswer(q, raw){
+    const input = normalize(raw);
+    // needs one term from each pair group; checkTwo holds e.g. ["しぼう酸","脂肪酸","モノグリセリド"]
+    const fatMatch = input.includes(normalize("しぼう酸")) || input.includes(normalize("脂肪酸"));
+    const monoMatch = input.includes(normalize("モノグリセリド"));
+    return fatMatch && monoMatch;
+  }
+
+  // ---------- render ----------
+  function renderQuestion(){
+    answered = false;
+    const qi = order[current];
+    const q = questions[qi];
+
+    progressBar.style.width = (current/order.length*100)+"%";
+    sectionBadge.textContent = SECTION_NAMES[q.section];
+    qPosition.textContent = "問 "+(current+1)+" / "+order.length;
+    qNumber.textContent = "問"+(current+1);
+    qText.textContent = q.q;
+
+    feedback.className = "feedback";
+    feedback.classList.remove("show");
+    nextBtn.classList.remove("show");
+
+    optionsContainer.innerHTML = "";
+    textInputContainer.classList.add("hidden");
+    textAnswer.value = "";
+    textAnswer.disabled = false;
+    submitTextBtn.disabled = false;
+
+    if(q.type === "mc"){
+      optionsContainer.classList.remove("hidden");
+      q.options.forEach((opt, idx)=>{
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = opt;
+        btn.addEventListener("click", ()=>handleMCAnswer(idx, btn));
+        optionsContainer.appendChild(btn);
+      });
+    } else {
+      optionsContainer.classList.add("hidden");
+      textInputContainer.classList.remove("hidden");
+      setTimeout(()=>textAnswer.focus(), 50);
+    }
+  }
+
+  function handleMCAnswer(idx, btnEl){
+    if(answered) return;
+    answered = true;
+    const qi = order[current];
+    const q = questions[qi];
+    const buttons = optionsContainer.querySelectorAll(".option-btn");
+    buttons.forEach(b=>b.disabled = true);
+
+    const isCorrect = idx === q.correct;
+    if(isCorrect){
+      score++;
+      btnEl.classList.add("correct");
+    } else {
+      btnEl.classList.add("incorrect");
+      buttons[q.correct].classList.add("correct");
+    }
+    showFeedback(isCorrect, q.options[q.correct], q.explain);
+  }
+
+  function handleTextSubmit(){
+    if(answered) return;
+    const qi = order[current];
+    const q = questions[qi];
+    const raw = textAnswer.value;
+    if(!raw.trim()) { textAnswer.focus(); return; }
+    answered = true;
+    textAnswer.disabled = true;
+    submitTextBtn.disabled = true;
+
+    let isCorrect;
+    if(q.checkTwo){
+      isCorrect = checkTwoPartAnswer(q, raw);
+    } else {
+      isCorrect = checkTextAnswer(q, raw);
+    }
+    if(isCorrect) score++;
+
+    const correctDisplay = q.answers[0];
+    showFeedback(isCorrect, correctDisplay, q.explain);
+  }
+
+  function showFeedback(isCorrect, correctAnswerText, explain){
+    feedback.classList.add("show");
+    if(isCorrect){
+      feedback.classList.add("correct");
+      fbTitle.textContent = "○ 正解！";
+    } else {
+      feedback.classList.add("incorrect");
+      fbTitle.textContent = "× 残念…";
+    }
+    fbAnswer.textContent = "正答：" + correctAnswerText;
+    fbExplain.textContent = explain;
+    nextBtn.classList.add("show");
+    nextBtn.textContent = (current === order.length-1) ? "結果を見る" : "次の問題へ";
+  }
+
+  function goNext(){
+    if(!answered) return;
+    if(current === order.length-1){
+      showResult();
+    } else {
+      current++;
+      renderQuestion();
+    }
+  }
+
+  function showResult(){
+    quizScreen.classList.add("hidden");
+    resultScreen.classList.remove("hidden");
+    scoreBig.textContent = score + " / " + order.length;
+    const pct = Math.round(score/order.length*100);
+    scorePct.textContent = "正答率 " + pct + "%";
+    let msg;
+    if(pct >= 90) msg = "素晴らしい！しっかり理解できています。";
+    else if(pct >= 70) msg = "よくできました。もう少しで完璧です。";
+    else if(pct >= 50) msg = "まずまずです。まちがえた部分をもう一度確認しよう。";
+    else msg = "もう一度「まとめてみよう」を読み直して復習しよう。";
+    rankMsg.textContent = msg;
+  }
+
+  function startQuiz(){
+    order = shuffle(questions.map((_,i)=>i));
+    current = 0;
+    score = 0;
+    startScreen.classList.add("hidden");
+    resultScreen.classList.add("hidden");
+    quizScreen.classList.remove("hidden");
+    renderQuestion();
+  }
+
+  startBtn.addEventListener("click", startQuiz);
+  retryBtn.addEventListener("click", startQuiz);
+  nextBtn.addEventListener("click", goNext);
+  submitTextBtn.addEventListener("click", handleTextSubmit);
+  textAnswer.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      if(!answered) handleTextSubmit();
+      else goNext();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
